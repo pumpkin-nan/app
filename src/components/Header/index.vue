@@ -5,15 +5,21 @@
       <div class="container">
         <div class="loginList">
           <p>尚品汇欢迎您！</p>
-          <p>
+          <!-- 没有用户名，未登录 -->
+          <p v-if="!userName">
             <span>请</span>
             <router-link to="/login">登录</router-link>
             <router-link to="/register" class="register">免费注册</router-link>
           </p>
+          <p v-else>
+            <span>请</span>
+            <a>{{ userName }}</a>
+            <a class="register" @click="logOut">退出登录</a>
+          </p>
         </div>
         <div class="typeList">
-          <a href="###">我的订单</a>
-          <a href="###">我的购物车</a>
+          <router-link to="/center/myorder">我的订单</router-link>
+          <router-link to="/shopcart">我的购物车</router-link>
           <a href="###">我的尚品汇</a>
           <a href="###">尚品汇会员</a>
           <a href="###">企业采购</a>
@@ -72,13 +78,34 @@ export default {
       //   `/search/${this.keyword}?k=${this.keyword.toUpperCase()}`
       // )
       //第三种：对象写法
-      this.$router.push({
-        name: 'search',
-        params: { keyword: this.keyword },
-        query: {
-          k: this.keyword.toUpperCase()
+
+      //代表的是如果有query参数也带过去
+      if (this.$route.query) {
+        let location = {
+          name: 'search',
+          params: { keyword: this.keyword || undefined }
         }
-      })
+        location.query = this.$route.query
+        this.$router.push(location)
+      }
+    },
+    async logOut() {
+      try {
+        await this.$store.dispatch('userLoginOut')
+        this.$router.push('/home')
+      } catch (error) {
+        alert(error.message)
+      }
+    }
+  },
+  mounted() {
+    this.$bus.$on('clear', () => {
+      this.keyword = ''
+    })
+  },
+  computed: {
+    userName() {
+      return this.$store.state.user.userInfo.name
     }
   }
 }
